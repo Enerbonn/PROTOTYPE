@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>P.A.U.S.E. Prototype — Final Demo</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111827;
+      --panel2:#1f2937;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:rgba(255,255,255,.08);
+      --accent:#38bdf8;
+      --warn:#f59e0b;
+      --danger:#fb7185;
+      --ok:#22c55e;
+      --shadow:0 16px 45px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      color:var(--text);
+      background:linear-gradient(135deg,#07101d 0%,#0f172a 55%,#111827 100%);
+      min-height:100vh;
+    }
+    .wrap{max-width:1450px;margin:0 auto;padding:20px}
+    .top{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+    h1{margin:0;font-size:28px}
+    .subtitle{margin:8px 0 0;color:var(--muted);max-width:900px;line-height:1.45}
+    .chips{display:flex;gap:10px;flex-wrap:wrap}
+    .chip{
+      background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:999px;
+      padding:8px 12px;font-size:13px
+    }
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .panel{
+      background:rgba(17,24,39,.96);
+      border:1px solid var(--border);
+      border-radius:22px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      min-height:720px;
+      display:flex;flex-direction:column;
+    }
+    .panel-head{
+      padding:16px 18px;
+      border-bottom:1px solid var(--border);
+      display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+      background:rgba(255,255,255,.02);
+    }
+    .panel-head h2{margin:0;font-size:20px}
+    .panel-head p{margin:5px 0 0;color:var(--muted);font-size:13px;line-height:1.4}
+    .tag{
+      white-space:nowrap;
+      padding:6px 10px;border-radius:999px;border:1px solid var(--border);
+      background:rgba(255,255,255,.05);font-size:12px;color:#cbd5e1
+    }
+    .chat{
+      flex:1;overflow-y:auto;padding:18px;
+      background:
+        radial-gradient(circle at top right, rgba(56,189,248,.08), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,0));
+    }
+    .msg{
+      max-width:78%;margin-bottom:12px;padding:12px 14px;border-radius:16px;line-height:1.45;
+      box-shadow:0 6px 20px rgba(0,0,0,.18);white-space:pre-wrap;word-wrap:break-word;
+    }
+    .msg small{display:block;margin-top:8px;font-size:11px;color:rgba(255,255,255,.72)}
+    .predator{background:rgba(251,113,133,.18);border:1px solid rgba(251,113,133,.28);margin-right:auto}
+    .user{background:rgba(56,189,248,.18);border:1px solid rgba(56,189,248,.28);margin-left:auto}
+    .system{background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.24);margin:0 auto 12px;max-width:88%;text-align:center}
+    .composer{border-top:1px solid var(--border);padding:14px;background:rgba(255,255,255,.02)}
+    textarea,input,select{
+      width:100%;border-radius:14px;border:1px solid var(--border);
+      background:#0f172a;color:var(--text);padding:12px 14px;outline:none
+    }
+    textarea{min-height:82px;resize:vertical}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+    button{
+      border:0;border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;
+      transition:.15s transform ease,.15s opacity ease;
+    }
+    button:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--accent);color:#062033}
+    .btn-secondary{background:#334155;color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-warning{background:var(--warn);color:#111827}
+    .btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--border);color:#fff}
+    .config{
+      margin-top:18px;background:rgba(17,24,39,.96);border:1px solid var(--border);border-radius:22px;
+      box-shadow:var(--shadow);padding:18px;
+    }
+    .config-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .config-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:12px;margin-top:12px}
+    .field label{display:block;margin-bottom:6px;font-size:13px;color:#cbd5e1}
+    .note{color:var(--muted);font-size:12px;line-height:1.45;margin-top:8px}
+    .legend{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}
+    .legend-card{border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.03);padding:12px}
+    .legend-card strong{display:block;margin-bottom:6px}
+    .legend-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.42}
+    .warning{
+      position:fixed;right:20px;bottom:20px;width:380px;max-width:calc(100vw - 30px);
+      background:rgba(17,24,39,.98);border:1px solid rgba(245,158,11,.35);border-left:6px solid var(--warn);
+      border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.4);padding:16px;z-index:999;display:none;
+      animation:slideIn .25s ease;cursor:pointer;
+    }
+    .warning.active{display:block}
+    @keyframes slideIn{from{transform:translateY(18px);opacity:0}to{transform:none;opacity:1}}
+    .warning h4{margin:0 0 8px;font-size:17px}
+    .warning p{margin:0;color:#e2e8f0;line-height:1.45;font-size:14px}
+    .popup-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .countdown{font-size:12px;color:var(--muted);margin-top:10px}
+    .modal{
+      position:fixed;inset:0;background:rgba(2,6,23,.78);display:none;align-items:center;justify-content:center;
+      z-index:1000;padding:18px;
+    }
+    .modal.active{display:flex}
+    .card{
+      width:100%;max-width:760px;background:#0f172a;border:1px solid var(--border);
+      border-radius:22px;overflow:hidden;box-shadow:var(--shadow)
+    }
+    .card-head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .card-body{padding:16px}
+    .reflection-log{min-height:260px;max-height:380px;overflow-y:auto;padding-right:4px;margin-bottom:12px}
+    .reflection-entry{padding:12px 14px;border-radius:14px;margin-bottom:10px;line-height:1.45}
+    .reflection-ai{background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.22)}
+    .reflection-user{background:rgba(255,255,255,.06);border:1px solid var(--border)}
+    .reflection-summary{
+      margin-bottom:12px;padding:12px 14px;border-radius:14px;
+      background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.26);color:#fde68a;line-height:1.45
+    }
+    .reflection-summary strong{display:block;color:#fff;margin-bottom:4px}
+    @media (max-width:1100px){
+      .grid,.config-grid,.legend{grid-template-columns:1fr}
+      .panel{min-height:580px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>P.A.U.S.E. Prototype</h1>
+        <p class="subtitle">
+          Prompt-Activated User Safety Enhancement — a laptop web simulation for your research on friction prompts against online grooming and risky digital interactions.
+          Both sides of the chat are mirrored, analyzed, and can trigger a non-blocking, clickable safety reminder.
+        </p>
+      </div>
+      <div class="chips">
+        <div class="chip" id="modeChip">Mode: Live Webhook Analysis</div>
+        <div class="chip" id="apiChip">API: Connected</div>
+        <div class="chip" id="riskChip">Risk State: Standby</div>
+        <div class="chip" id="sessionChip">Session: 0 messages</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Predator Simulator</h2>
+            <p>Send test messages that simulate manipulation, secrecy, coercion, or normal conversation.</p>
+          </div>
+          <span class="tag">Simulated sender</span>
+        </div>
+        <div class="chat" id="predatorChat"></div>
+        <div class="composer">
+          <textarea id="predatorInput" placeholder="Type a suspicious or normal message here."></textarea>
+          <div class="controls">
+            <button class="btn-danger" id="sendPredatorBtn">Send to User Chat</button>
+            <button class="btn-secondary" id="seedRiskyBtn">Insert Risky Example</button>
+            <button class="btn-ghost" id="seedNormalBtn">Insert Normal Example</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Main Protected Interface</h2>
+            <p>The user-facing chat. Incoming and outgoing messages are analyzed continuously.</p>
+          </div>
+          <span class="tag">Protected by P.A.U.S.E.</span>
+        </div>
+        <div class="chat" id="userChat"></div>
+        <div class="composer">
+          <textarea id="userInput" placeholder="Type as the user here. Example: Why can't I tell my parents?"></textarea>
+          <div class="controls">
+            <button class="btn-primary" id="sendUserBtn">Send as User</button>
+            <button class="btn-secondary" id="clearBtn">Clear Conversation</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="config">
+      <div class="config-top">
+        <h3 style="margin:0">Prototype Settings</h3>
+        <div class="controls" style="margin-top:0">
+          <button class="btn-ghost" id="loadScenarioBtn">Load Demo Scenario</button>
+          <button class="btn-ghost" id="exportSessionBtn">Export Session JSON</button>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-card">
+          <strong>Webhook</strong>
+          <p>Connected to the fixed n8n endpoint for live monitoring and reflection. Local mode and manual endpoint editing were removed for a cleaner demo.</p>
+        </div>
+        <div class="legend-card">
+          <strong>Memory Limits</strong>
+          <p>Only the most recent 15 chat messages are sent for monitoring, and the most recent 10 main-chat messages plus 10 reflection turns are sent for reflection, to reduce token usage and cost.</p>
+        </div>
+        <div class="legend-card">
+          <strong>Protection Logic</strong>
+          <p>Requests are rate-limited and popup warnings use cooldown logic so repeated risky messages do not spam the user.</p>
+        </div>
+        <div class="legend-card">
+          <strong>Reflection Flow</strong>
+          <p>The reflection modal now starts with a short summary and one grounded prompt instead of many stacked blocks.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="warning" id="warningPopup" title="Click this reminder to open reflection chat">
+    <h4>Pause and check this message</h4>
+    <p id="warningText">This message may involve secrecy, manipulation, or pressure. Pause before replying.</p>
+    <div class="popup-actions">
+      <button class="btn-ghost" id="dismissWarningBtn">Dismiss</button>
+    </div>
+    <div class="countdown" id="countdownText">Auto-hides in 7 seconds • Click reminder to reflect</div>
+  </div>
+
+  <div class="modal" id="reflectionModal">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <strong>Safe Reflection Chat</strong>
+          <div class="note">The assistant does not decide for the user. It encourages reflection and safer thinking.</div>
+        </div>
+        <button class="btn-ghost" id="closeReflectionBtn">Close</button>
+      </div>
+      <div class="card-body">
+        <div class="reflection-log" id="reflectionLog"></div>
+        <textarea id="reflectionInput" placeholder="Type what you're thinking or ask the reflection assistant a question."></textarea>
+        <div class="controls">
+          <button class="btn-primary" id="sendReflectionBtn">Send to Reflection Chat</button>
+          <button class="btn-secondary" id="seedReflectionBtn">Add Starter Prompt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const predatorChat = document.getElementById('predatorChat');
+    const userChat = document.getElementById('userChat');
+    const predatorInput = document.getElementById('predatorInput');
+    const userInput = document.getElementById('userInput');
+
+    const FIXED_WEBHOOK_URL = 'https://enerbonn.app.n8n.cloud/webhook/pause-risk-check';
+
+    const modeChip = document.getElementById('modeChip');
+    const apiChip = document.getElementById('apiChip');
+    const riskChip = document.getElementById('riskChip');
+    const sessionChip = document.getElementById('sessionChip');
+
+    const warningPopup = document.getElementById('warningPopup');
+    const warningText = document.getElementById('warningText');
+    const countdownText = document.getElementById('countdownText');
+
+    const reflectionModal = document.getElementById('reflectionModal');
+    const reflectionLog = document.getElementById('reflectionLog');
+    const reflectionInput = document.getElementById('reflectionInput');
+
+    let popupTimer = null;
+    let countdownTimer = null;
+    let countdownValue = 7;
+
+    let conversation = [];
+    let reflectionConversation = [];
+    let latestRiskContext = null;
+    let eventLog = [];
+    let sessionState = {
+  	last_check_time: 0,
+  	last_warning_time: 0,
+ 	 escalation_level: 0,
+	  last_label: 'safe',
+ 	 last_score: 0,
+ 	 popup_cooldown_ms: 15000,
+ 	 rate_limit_ms: 1000
+	};
+    let shownReflectionWarningId = null;
+
+    const localPatterns = [
+      {
+        type: 'secrecy',
+        score: 0.86,
+        patterns: [/don't tell/i,/dont tell/i,/keep this secret/i,/just between us/i,/hide this/i,/our little secret/i,/keep our chats private/i],
+        reminder: 'People who ask for secrecy may be trying to isolate you from trusted adults or friends. Pause before replying.'
+      },
+      {
+        type: 'sexual_request',
+        score: 0.97,
+        patterns: [/send (me )?(a )?(pic|photo)/i,/send nudes/i,/show me your body/i,/take off/i,/video call alone/i,/private picture/i],
+        reminder: 'Requests for private photos or sexual content can be a grooming or exploitation warning sign. You do not need to respond.'
+      },
+      {
+        type: 'emotional_pressure',
+        score: 0.75,
+        patterns: [/if you love me/i,/prove you love me/i,/you would do this for me/i,/don't you trust me/i,/if you care about me/i],
+        reminder: 'Pressure framed as love or trust can be manipulation. Healthy relationships do not force proof, secrecy, or fear.'
+      },
+      {
+        type: 'isolation',
+        score: 0.81,
+        patterns: [/your parents won't understand/i,/no one gets you like i do/i,/stop talking to them/i,/they will ruin us/i,/they'll overreact/i],
+        reminder: 'Attempts to separate you from family or support systems can be risky. Consider checking with someone you trust.'
+      },
+      {
+        type: 'blackmail_threat',
+        score: 0.99,
+        patterns: [/i'll leak/i,/i will post/i,/or else/i,/do this or/i,/everyone will see/i,/i'll show everyone/i],
+        reminder: 'Threats, blackmail, and fear tactics are serious warning signs. Stop, save evidence if safe, and seek support.'
+      },
+      {
+        type: 'off_platform',
+        score: 0.68,
+        patterns: [/move to telegram/i,/switch to signal/i,/talk on whatsapp/i,/delete our chat/i,/snapchat instead/i],
+        reminder: 'Moving chats to hidden platforms or deleting messages can reduce accountability. Pause and consider why that is being asked.'
+      }
+    ];
+
+    function nowTime(){
+      return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }
+
+    function escapeHtml(text){
+      return text
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+    }
+
+    function addMessage(targetEl, role, text, meta=''){
+      const div = document.createElement('div');
+      div.className = `msg ${role}`;
+      div.innerHTML = `${escapeHtml(text)}${meta ? `<small>${escapeHtml(meta)}</small>` : ''}`;
+      targetEl.appendChild(div);
+      targetEl.scrollTop = targetEl.scrollHeight;
+      return div;
+    }
+
+    function addSystem(text){
+      addMessage(userChat, 'system', text, `System • ${nowTime()}`);
+    }
+
+    function addReflection(role, text){
+      const div = document.createElement('div');
+      div.className = `reflection-entry ${role === 'ai' ? 'reflection-ai' : 'reflection-user'}`;
+      div.textContent = text;
+      reflectionLog.appendChild(div);
+      reflectionLog.scrollTop = reflectionLog.scrollHeight;
+    }
+
+    function syncHeaderChips(){
+      modeChip.textContent = 'Mode: Live Webhook Analysis';
+      apiChip.textContent = 'API: Connected';
+    }
+
+    function updateRiskChip(result){
+      if (!result.flagged){
+        riskChip.textContent = `Risk State: Standby (${result.label})`;
+      } else {
+        riskChip.textContent = `Risk State: Warning (${result.label}, ${Math.round(result.score * 100)}%)`;
+      }
+    }
+
+    function pushConversation(sender, text){
+      const entry = { sender, text, time: new Date().toISOString() };
+      conversation.push(entry);
+      eventLog.push({ type:'message', ...entry });
+      sessionChip.textContent = `Session: ${conversation.length} messages`;
+    }
+
+    function buildReflectionStarter(analysis, originalText){
+      const label = analysis?.label || 'risk';
+      if (label === 'coercive_pressure') return 'That message sounds pressuring. What part of it feels most off to you?';
+      if (label === 'sexual_image_request') return 'A request like that can put you in a hard spot. Do you feel uncomfortable, pressured, or unsure?';
+      if (label === 'secrecy_request') return 'Secrecy can be a warning sign. What goes through your mind when someone wants this hidden?';
+      if (label === 'blackmail_threat') return 'That sounds serious. What would help you feel safer right now?';
+      return 'Something about this interaction may be unsafe. What part makes you want to pause?';
+    }
+
+    function buildReflectionQuestions(type){
+      const map = {
+        secrecy: [
+          'Why might someone want this conversation hidden from people who care about you?',
+          'What would you tell a friend if they received the same message?'
+        ],
+        sexual_request: [
+          'Do you feel pressured to send something you do not want to send?',
+          'Could sharing this create a risk for your safety, privacy, or future well-being?'
+        ],
+        emotional_pressure: [
+          'Is this request based on trust and respect, or on guilt and pressure?',
+          'What would a healthy response to this situation look like?'
+        ],
+        isolation: [
+          'How do you feel when someone tries to separate you from trusted people?',
+          'Who is one safe person you could check with before continuing?'
+        ],
+        blackmail_threat: [
+          'What immediate step would help protect your safety right now?',
+          'Would saving evidence and contacting a trusted adult or authority be safer than replying?'
+        ],
+        off_platform: [
+          'Why might someone want fewer records or less visibility for this conversation?',
+          'Does moving the chat make you safer or more vulnerable?'
+        ],
+        uncertainty: [
+          'What part of this interaction feels off or uncomfortable?',
+          'What would help you feel safer before replying?'
+        ]
+      };
+      return map[type] || [
+        'What part of this interaction concerns you?',
+        'What would help you pause and think more safely?'
+      ];
+    }
+
+    function localAnalyze(text, sender){
+      const lowered = text.toLowerCase();
+      let best = null;
+
+      for (const rule of localPatterns){
+        const matched = rule.patterns.some(pattern => pattern.test(lowered));
+        if (matched && (!best || rule.score > best.score)){
+          best = {
+            flagged: true,
+            score: rule.score,
+            label: rule.type,
+            reminder: rule.reminder,
+            source: 'local-rules',
+            questions: buildReflectionQuestions(rule.type)
+          };
+        }
+      }
+
+      if (!best && sender === 'user'){
+        if (/should i send/i.test(lowered) || /is this okay/i.test(lowered) || /he said not to tell/i.test(lowered) || /why can't i tell/i.test(lowered)){
+          best = {
+            flagged: true,
+            score: 0.64,
+            label: 'user-uncertainty',
+            reminder: 'Your message suggests uncertainty or pressure. Taking a moment to reflect can help before you respond.',
+            source: 'local-rules',
+            questions: buildReflectionQuestions('uncertainty')
+          };
+        }
+      }
+
+      return best || {
+        flagged: false,
+        score: 0.08,
+        label: 'safe',
+        reminder: '',
+        source: 'local-rules',
+        questions: []
+      };
+    }
+
+    function normalizeApiResult(data){
+      return {
+        flagged: Boolean(data.flagged || data.risk_detected),
+        score: Number(data.score || data.risk_score || 0),
+        label: data.label || data.risk_type || 'unspecified',
+        reminder: data.reminder || data.friction_prompt || 'This exchange may contain manipulative or risky behavior. Pause before replying.',
+        source: data.source || 'api',
+        questions: Array.isArray(data.questions) ? data.questions : [],
+        popup_allowed: data.popup_allowed !== false,
+        throttle_skipped: Boolean(data.throttle_skipped),
+        session_state: data.session_state || null
+      };
+    }
+
+    async function analyzeMessage(eventPayload){
+      riskChip.textContent = 'Risk State: Analyzing...';
+
+      try{
+        const response = await fetch(FIXED_WEBHOOK_URL, {
+          method:'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            app: 'PAUSE_prototype',
+            timestamp: new Date().toISOString(),
+            conversation: conversation.slice(-15),
+            latest_event: eventPayload,
+            session_state: sessionState
+          })
+        });
+
+        const data = await response.json();
+        const normalized = normalizeApiResult(data);
+        if (normalized.session_state) sessionState = { ...sessionState, ...normalized.session_state };
+        updateRiskChip(normalized);
+        return normalized;
+      } catch(error){
+        console.error(error);
+        const fallback = {
+          flagged: false,
+          score: 0,
+          label: 'api-error',
+          reminder: 'The API request failed. Check the webhook or JSON response format.',
+          source: 'frontend-error',
+          popup_allowed: false,
+          throttle_skipped: false,
+          session_state: sessionState
+        };
+        updateRiskChip(fallback);
+        return fallback;
+      }
+    }
+
+    async function sendPredatorMessage(text){
+      const trimmed = text.trim();
+      if (!trimmed) return;
+
+      addMessage(predatorChat, 'predator', trimmed, `Predator Simulator • ${nowTime()}`);
+      addMessage(userChat, 'predator', trimmed, `Incoming message • ${nowTime()}`);
+      pushConversation('predator', trimmed);
+      predatorInput.value = '';
+
+      const analysis = await analyzeMessage({ sender:'predator', text:trimmed });
+      if (analysis.flagged && analysis.popup_allowed !== false) showWarning(analysis, trimmed, 'predator');
+    }
+
+    async function sendUserMessage(text){
+      const trimmed = text.trim();
+      if (!trimmed) return;
+
+      addMessage(userChat, 'user', trimmed, `User • ${nowTime()}`);
+      addMessage(predatorChat, 'user', trimmed, `User reply received • ${nowTime()}`);
+      pushConversation('user', trimmed);
+      userInput.value = '';
+
+      const analysis = await analyzeMessage({ sender:'user', text:trimmed });
+      if (analysis.flagged && analysis.popup_allowed !== false) showWarning(analysis, trimmed, 'user');
+    }
+
+    function hideWarning(){
+      warningPopup.classList.remove('active');
+      clearTimeout(popupTimer);
+      clearInterval(countdownTimer);
+    }
+
+    function showWarning(analysis, originalText, sender){
+      latestRiskContext = { analysis, originalText, sender, warningId: `${Date.now()}-${Math.random().toString(36).slice(2,8)}` };
+      eventLog.push({
+        type:'warning',
+        time:new Date().toISOString(),
+        sender,
+        originalText,
+        analysis
+      });
+
+      warningText.textContent = analysis.reminder || 'This conversation may contain manipulation or risk. Pause before replying.';
+      warningPopup.classList.add('active');
+
+      clearTimeout(popupTimer);
+      clearInterval(countdownTimer);
+      countdownValue = 7;
+      countdownText.textContent = `Auto-hides in ${countdownValue} seconds • Click reminder to reflect`;
+
+      countdownTimer = setInterval(() => {
+        countdownValue -= 1;
+        if (countdownValue <= 0){
+          clearInterval(countdownTimer);
+          countdownText.textContent = 'Closing...';
+        } else {
+          countdownText.textContent = `Auto-hides in ${countdownValue} seconds • Click reminder to reflect`;
+        }
+      }, 1000);
+
+      popupTimer = setTimeout(() => {
+        hideWarning();
+      }, 7000);
+    }
+
+    function openReflection(){
+      hideWarning();
+      reflectionModal.classList.add('active');
+      eventLog.push({ type:'reflection_opened', time:new Date().toISOString(), context: latestRiskContext });
+
+      if (reflectionConversation.length === 0){
+        addReflection('ai', 'You do not need to rush here. We can look at this one step at a time.');
+      }
+
+      if (latestRiskContext){
+        const warningId = latestRiskContext.warningId;
+        if (shownReflectionWarningId !== warningId){
+          shownReflectionWarningId = warningId;
+          const { analysis, originalText } = latestRiskContext;
+          const summary = document.createElement('div');
+          summary.className = 'reflection-summary';
+          summary.innerHTML = `<strong>Pause summary</strong>${escapeHtml((analysis.label || 'risk').replace(/_/g,' '))} detected. ${escapeHtml(analysis.reminder || 'Take a moment before replying.')}`;
+          reflectionLog.appendChild(summary);
+          reflectionLog.scrollTop = reflectionLog.scrollHeight;
+
+          const starter = buildReflectionStarter(analysis, originalText);
+          addReflection('ai', starter);
+        }
+      }
+    }
+
+    function closeReflection(){
+      reflectionModal.classList.remove('active');
+    }
+
+    function localReflectionReply(userText){
+      const lower = userText.toLowerCase();
+
+      if (/scared|afraid|nervous|worried/.test(lower)){
+        return 'Feeling scared is a valid signal. You may want to stop replying for now and reach out to a trusted adult, friend, counselor, or authority.';
+      }
+      if (/send|photo|picture|nude|video/.test(lower)){
+        return 'You never owe anyone photos, videos, or proof. A safer step may be to avoid sending anything and think about who can support you.';
+      }
+      if (/secret|hide|tell my mom|tell my parents/.test(lower)){
+        return 'Requests for secrecy are important to notice. Safe relationships usually do not depend on hiding things from people who protect you.';
+      }
+      if (/what should i do|help me|now what/.test(lower)){
+        return 'A practical next step could be: pause the chat, do not send anything sensitive, save screenshots if safe, and contact someone you trust.';
+      }
+      return 'Let us slow this down. What feels unsafe here: the secrecy, pressure, threat, sexual request, or something else?';
+    }
+
+    async function sendReflectionMessage(){
+      const text = reflectionInput.value.trim();
+      if (!text) return;
+
+      addReflection('user', text);
+      reflectionConversation.push({ role:'user', text });
+      eventLog.push({ type:'reflection_user', time:new Date().toISOString(), text });
+      reflectionInput.value = '';
+
+      try{
+        const response = await fetch(FIXED_WEBHOOK_URL, {
+          method:'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({
+            app:'PAUSE_reflection_chat',
+            mode:'reflection',
+            conversation: conversation.slice(-10),
+            reflection_conversation: reflectionConversation.slice(-10),
+            latest_risk_context: latestRiskContext,
+            user_message: text,
+            session_state: sessionState
+          })
+        });
+
+        const data = await response.json();
+        if (data.session_state) sessionState = { ...sessionState, ...data.session_state };
+        const reply = data.reply || data.message || 'Take a breath. What is one thing you want to be true before you continue this conversation?';
+        addReflection('ai', reply);
+        reflectionConversation.push({ role:'ai', text:reply });
+        eventLog.push({ type:'reflection_ai', time:new Date().toISOString(), text:reply });
+        return;
+      } catch(error){
+        console.error(error);
+      }
+
+      const reply = localReflectionReply(text);
+      addReflection('ai', reply);
+      reflectionConversation.push({ role:'ai', text:reply });
+      eventLog.push({ type:'reflection_ai', time:new Date().toISOString(), text:reply });
+    }
+
+    function seedRisky(){
+      predatorInput.value = "Don't tell your mom about us. If you really care about me, send me a private pic. We can move to Telegram and delete this chat.";
+    }
+
+    function seedNormal(){
+      predatorInput.value = "Hey, are you free for the group project later? We still need to finish the slides.";
+    }
+
+    function seedReflection(){
+      reflectionInput.value = "I feel pressured and I am not sure whether this is normal.";
+    }
+
+    async function loadDemoScenario(){
+      predatorChat.innerHTML = '';
+      userChat.innerHTML = '';
+      reflectionLog.innerHTML = '';
+      conversation = [];
+      reflectionConversation = [];
+      latestRiskContext = null;
+      eventLog = [];
+      shownReflectionWarningId = null;
+      sessionState = {
+ 	 last_check_time: 0,
+  	last_warning_time: 0,
+  	escalation_level: 0,
+  	last_label: 'safe',
+  	last_score: 0,
+  	popup_cooldown_ms: 15000,
+  	rate_limit_ms: 1000
+	};
+      sessionChip.textContent = 'Session: 0 messages';
+      hideWarning();
+
+      addSystem('Loaded demo scenario: escalating grooming-like interaction for testing the friction prompt.');
+
+      const script = [
+        { sender:'predator', text:'Hey, you seem really mature. I like talking to you more than people my age.' },
+        { sender:'user', text:'Thanks. Why do you say that?' },
+        { sender:'predator', text:"You just get me. Don't tell your parents about our talks, they might overreact." },
+        { sender:'user', text:"Why can't I tell them?" },
+        { sender:'predator', text:'Because they will not understand us. If you trust me, send me a private picture.' }
+      ];
+
+      for (const item of script){
+        if (item.sender === 'predator'){
+          addMessage(predatorChat, 'predator', item.text, `Predator Simulator • ${nowTime()}`);
+          addMessage(userChat, 'predator', item.text, `Incoming message • ${nowTime()}`);
+        } else {
+          addMessage(userChat, 'user', item.text, `User • ${nowTime()}`);
+          addMessage(predatorChat, 'user', item.text, `User reply received • ${nowTime()}`);
+        }
+        pushConversation(item.sender, item.text);
+      }
+
+      const last = script[script.length - 1];
+      const result = await analyzeMessage(last);
+      if (result.flagged) showWarning(result, last.text, last.sender);
+    }
+
+    function exportSession(){
+      const payload = {
+        app:'PAUSE_prototype',
+        exported_at:new Date().toISOString(),
+        analysis_mode:'api-fixed',
+        endpoint:FIXED_WEBHOOK_URL,
+        session_state: sessionState,
+        conversation,
+        reflection_conversation:reflectionConversation,
+        latest_risk_context:latestRiskContext,
+        event_log:eventLog
+      };
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pause-session-export.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAll(){
+      predatorChat.innerHTML = '';
+      userChat.innerHTML = '';
+      reflectionLog.innerHTML = '';
+      conversation = [];
+      reflectionConversation = [];
+      latestRiskContext = null;
+      eventLog = [];
+      shownReflectionWarningId = null;
+      sessionState = {
+	  last_check_time: 0,
+  	last_warning_time: 0,
+  	escalation_level: 0,
+ 	 last_label: 'safe',
+ 	 last_score: 0,
+ 	 popup_cooldown_ms: 15000,
+  	rate_limit_ms: 1000
+	};
+      sessionChip.textContent = 'Session: 0 messages';
+      hideWarning();
+
+      addSystem('Conversation cleared. The prototype is back in standby mode.');
+      riskChip.textContent = 'Risk State: Standby';
+    }
+
+    document.getElementById('sendPredatorBtn').addEventListener('click', () => sendPredatorMessage(predatorInput.value));
+    document.getElementById('sendUserBtn').addEventListener('click', () => sendUserMessage(userInput.value));
+    document.getElementById('seedRiskyBtn').addEventListener('click', seedRisky);
+    document.getElementById('seedNormalBtn').addEventListener('click', seedNormal);
+    document.getElementById('clearBtn').addEventListener('click', clearAll);
+    document.getElementById('dismissWarningBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      hideWarning();
+    });
+    document.getElementById('closeReflectionBtn').addEventListener('click', closeReflection);
+    document.getElementById('sendReflectionBtn').addEventListener('click', sendReflectionMessage);
+    document.getElementById('seedReflectionBtn').addEventListener('click', seedReflection);
+    document.getElementById('loadScenarioBtn').addEventListener('click', loadDemoScenario);
+    document.getElementById('exportSessionBtn').addEventListener('click', exportSession);
+
+    warningPopup.addEventListener('click', (e) => {
+      if (e.target && e.target.id === 'dismissWarningBtn') return;
+      openReflection();
+    });
+
+    predatorInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        sendPredatorMessage(predatorInput.value);
+      }
+    });
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        sendUserMessage(userInput.value);
+      }
+    });
+    reflectionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        sendReflectionMessage();
+      }
+    });
+
+    function boot(){
+      syncHeaderChips();
+      addSystem('P.A.U.S.E. initialized. Incoming and outgoing messages will be analyzed through the live webhook.');
+      addMessage(predatorChat, 'system', 'Simulator ready. Use the left panel to send test messages into the protected chat.', `System • ${nowTime()}`);
+    }
+
+    boot();
+  </script>
+</body>
+</html>
